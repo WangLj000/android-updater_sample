@@ -1,0 +1,131 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+
+    repositories {
+        maven {
+            url 'https://maven.aliyun.com/repository/jcenter'
+        }
+        maven {
+            url 'https://maven.aliyun.com/repository/central'
+        }
+        maven {
+            url 'https://maven.aliyun.com/repository/google'
+        }
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.5.1'
+//        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion COMPILE_SDK
+    buildToolsVersion BUILD_TOOLS_VERSION
+
+    defaultConfig {
+        applicationId "com.example.android.systemupdatersample"
+        minSdkVersion 29
+        targetSdkVersion 32
+        versionCode 31
+        versionName "11"
+        javaCompileOptions { annotationProcessorOptions { includeCompileClasspath = true } }
+    }
+
+    signingConfigs {
+        platform {
+            keyAlias '3399androidkey'
+            keyPassword 'abc.123'
+            storeFile file('3399androidp.keystore')
+            storePassword 'abc.123'
+        }
+    }
+
+    buildTypes {
+        release {
+            debuggable false
+            minifyEnabled false
+            signingConfig signingConfigs.platform
+        }
+
+        debug {
+            debuggable true
+            minifyEnabled false
+            signingConfig signingConfigs.platform
+        }
+
+        applicationVariants.all { variant ->
+            variant.outputs.all {
+                outputFileName = "RBUpdateService.apk"
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+
+    sourceSets {
+        main {
+            java.srcDirs = ['src']
+            res.srcDirs = [ 'res']
+            manifest.srcFile 'AndroidManifest.xml'
+        }
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    compileOnly files('libs/framework.jar')
+    // https://mvnrepository.com/artifact/com.google.android.material/material
+    implementation 'com.google.android.material:material:1.6.1'
+    // https://mvnrepository.com/artifact/com.google.common/google-collect
+    //implementation group: 'com.google.common', name: 'google-collect', version: '1.0-rc1'
+    // https://mvnrepository.com/artifact/com.google.guava/guava
+    implementation group: 'com.google.guava', name: 'guava', version: '31.1-jre'
+
+
+
+}
+
+allprojects {
+    repositories {
+        maven {
+            url 'https://maven.aliyun.com/repository/jcenter'
+        }
+        maven {
+            url 'https://maven.aliyun.com/repository/central'
+        }
+        maven {
+            url 'https://maven.aliyun.com/repository/google'
+        }
+    }
+
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            if (options.bootstrapClasspath != null) {
+                Set<File> fileSet = options.bootstrapClasspath.getFiles()
+                List<File> newFileList = new ArrayList<>();
+                newFileList.add(new File("./libs/framework.jar"))
+                newFileList.addAll(fileSet)
+                options.bootstrapClasspath = files(
+                        newFileList.toArray()
+                )
+            }
+        }
+    }
+}
